@@ -1,8 +1,9 @@
 ## Sound2Text
 # GUI Audio Transcriber
 
-This a simple and minimalistic desktop app that transcribes audio files using OpenAI's Whisper API. The script provides a graphical user interface to select an audio file and save the resulting transcription file
+This simple desktop app transcribes audio files using OpenAI's Whisper API. The script provides a graphical user interface to select an audio file and save the resulting transcription file
 Output = An .srt-light subtitle file chuncked and timestamped by word, including punctuation, which was a pain in the butt to sort out.
+It is handy to use with OpenShot if you are recording podcasts with video, or creating clips.
 
 ## Features
 

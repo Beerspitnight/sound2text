@@ -18,15 +18,34 @@ except ImportError:
 class TranscriptionApp:
     def __init__(self, root_window):
         self.root = root_window
-        self.root.title("Whisper Transcriber")
+        self.root.title("sound2text - Whisper Transcription")
         self.root.eval('tk::PlaceWindow . center')
         self.audio_file_path = None
+        
+        # Main frame
         self.frame = tk.Frame(root_window, padx=15, pady=15)
         self.frame.pack(padx=10, pady=10, fill=tk.X)
+        
+        # File selection
         self.select_button = tk.Button(self.frame, text="1. Select Audio File", command=self.select_file)
         self.select_button.pack(fill=tk.X, pady=(0, 5))
         self.file_label = tk.Label(self.frame, text="No file selected", fg="grey", wraplength=400, justify=tk.LEFT)
         self.file_label.pack(fill=tk.X, pady=5)
+        
+        # Options frame
+        self.options_frame = tk.Frame(self.frame)
+        self.options_frame.pack(fill=tk.X, pady=10)
+        
+        # Line numbers checkbox
+        self.include_line_numbers = tk.BooleanVar(value=True)
+        self.line_numbers_checkbox = tk.Checkbutton(
+            self.options_frame, 
+            text="Include line numbers in SRT file", 
+            variable=self.include_line_numbers
+        )
+        self.line_numbers_checkbox.pack(anchor=tk.W)
+        
+        # Transcription button
         self.transcribe_button = tk.Button(self.frame, text="2. Transcribe and Save", command=self.start_transcription_thread)
         self.transcribe_button.pack(fill=tk.X, pady=10)
         self.status_label = tk.Label(self.frame, text="Welcome! Please select a file.", fg="blue")
@@ -67,12 +86,16 @@ class TranscriptionApp:
         self.status_label.config(text="Transcribing... This may take a moment.", fg="orange")
         self.select_button.config(state=tk.DISABLED)
         self.transcribe_button.config(state=tk.DISABLED)
+        self.line_numbers_checkbox.config(state=tk.DISABLED)
 
     def run_transcription(self, output_path):
         """The function that runs in the background thread."""
         try:
+            # Get the line numbers option from the checkbox
+            include_line_numbers = self.include_line_numbers.get()
+            
             # MODIFICATION: The logic function now returns the number of chunks.
-            chunk_count = transcribe_audio(self.audio_file_path, output_path)
+            chunk_count = transcribe_audio(self.audio_file_path, output_path, include_line_numbers)
             # We pass this number to the success function.
             self.root.after(0, self.on_transcription_success, output_path, chunk_count)
         except Exception as e:
@@ -91,6 +114,7 @@ class TranscriptionApp:
             
         self.select_button.config(state=tk.NORMAL)
         self.transcribe_button.config(state=tk.NORMAL)
+        self.line_numbers_checkbox.config(state=tk.NORMAL)
 
     def on_transcription_error(self, error):
         """Updates the GUI after a failed transcription."""
@@ -98,6 +122,7 @@ class TranscriptionApp:
         self.status_label.config(text="An error occurred. Please try again.", fg="red")
         self.select_button.config(state=tk.NORMAL)
         self.transcribe_button.config(state=tk.NORMAL)
+        self.line_numbers_checkbox.config(state=tk.NORMAL)
 
 if __name__ == "__main__":
     root = tk.Tk()

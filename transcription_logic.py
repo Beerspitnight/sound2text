@@ -10,12 +10,12 @@ import openai
 import os
 import sys
 
-# Load API key from environment variable
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
-    sys.exit("Error: OPENAI_API_KEY environment variable not set.")
-
-client = openai.OpenAI(api_key=api_key)
+def get_openai_client():
+    """Initialize and return OpenAI client with API key validation."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        sys.exit("Error: OPENAI_API_KEY environment variable not set.")
+    return openai.OpenAI(api_key=api_key)
 
 def srt_timestamp(seconds):
     """Converts seconds to a SubRip (SRT) timestamp format."""
@@ -87,6 +87,8 @@ def transcribe_whisper(audio_path):
     """
     Transcribes the audio file and returns a list of small, punctuated word chunks.
     """
+    client = get_openai_client()
+    
     with open(audio_path, "rb") as audio_file:
         print("Sending audio to OpenAI Whisper API...")
         
@@ -101,10 +103,15 @@ def transcribe_whisper(audio_path):
         return create_punctuated_chunks(response, chunk_size=1)
 
 
-def transcribe_audio(input_file, output_file=None):
+def transcribe_audio(input_file, output_file=None, include_line_numbers=True):
     """
     Handles the transcription process and writes the punctuated chunks to an SRT file.
     Returns the number of chunks created.
+    
+    Args:
+        input_file: Path to the audio file to transcribe
+        output_file: Path to the output SRT file (optional)
+        include_line_numbers: Whether to include line numbers in SRT output (default: True)
     """
     chunks = transcribe_whisper(input_file)
     
@@ -112,7 +119,8 @@ def transcribe_audio(input_file, output_file=None):
         with open(output_file, "w", encoding="utf-8") as f:
             if chunks:
                 for i, chunk in enumerate(chunks):
-                    f.write(f"{i + 1}\n")
+                    if include_line_numbers:
+                        f.write(f"{i + 1}\n")
                     f.write(f"{chunk['start']} --> {chunk['end']}\n")
                     f.write(f"{chunk['text']}\n\n")
     
@@ -122,6 +130,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Transcribe audio using OpenAI Whisper with advanced punctuation alignment.")
     parser.add_argument("input_file", help="Path to input audio file (e.g., input.mp3).")
     parser.add_argument("-o", "--output", help="Path to output SRT file (e.g., output.srt).")
+    parser.add_argument("--no-line-numbers", action="store_true", help="Exclude line numbers from SRT output.")
     args = parser.parse_args()
 
-    transcribe_audio(args.input_file, args.output)
+    include_line_numbers = not args.no_line_numbers
+    transcribe_audio(args.input_file, args.output, include_line_numbers)

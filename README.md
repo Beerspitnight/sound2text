@@ -12,6 +12,7 @@
 * Saves output in the standard `.srt` format (transcribe_logic_line_numbs.py)
 * Saves output  `.srt` format, without line numbers (Useful for OpenShot) (transcribe_logic.py)
 * Simple, minimalistic user interface.
+* timestamp_modifier.py - run separetly once transcription is complete to ensure each timestamp has a duration of not less than 300ms.
 
 ## How to Use
 
